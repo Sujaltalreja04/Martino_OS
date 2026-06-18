@@ -679,12 +679,18 @@ Ask me questions like:<br>
   // 5. Initializer trigger
   // ==========================================
   
-  window.addEventListener('load', () => {
+  function startCopilot() {
     if (window.location.pathname.includes('copilot.html')) {
       return;
     }
     injectCopilotElements();
     initChat();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('load', startCopilot);
+  } else {
+    startCopilot();
+  }
 
 })();

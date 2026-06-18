@@ -1060,8 +1060,10 @@ Example: If the user says "show me cook times in Bopal", reply with your text an
   // PART 3: INITIALIZATION TRIGGER
   // ==========================================================================
 
-  window.addEventListener('DOMContentLoaded', () => {
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initNotebook);
+  } else {
     initNotebook();
-  });
+  }
 
 })();
