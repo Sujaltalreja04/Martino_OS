@@ -513,7 +513,8 @@ Ask me questions like:<br>
       messages.push({ role: h.role, content: h.content });
     });
 
-    fetch('/api/copilot', {
+    const apiBase = (window.location.port && window.location.port !== '8000' && window.location.hostname === 'localhost') ? 'http://localhost:8000' : '';
+    fetch(apiBase + '/api/copilot', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
