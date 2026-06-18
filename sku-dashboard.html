@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Martinoz Franchise Intelligence Platform - SKU Performance & Stock Alignment Dashboard">
+  <title>Martinoz Pizza FIP | SKU & Stock Alignment</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* SKU Page Specific Grid */
+    .grid-sku-main {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 24px;
+    }
+
+    .chart-container-sku {
+      height: 340px;
+      position: relative;
+      background: rgba(0, 0, 0, 0.12);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sku-controls-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .action-btn-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: none;
+      transition: var(--transition-smooth);
+    }
+    .btn-reorder {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-reorder:hover {
+      background: #2e8f00;
+    }
+    .btn-discount {
+      background: var(--warning);
+      color: #000;
+    }
+    .btn-discount:hover {
+      background: #e0a102;
+    }
+
+    .text-success-green { color: var(--success) !important; }
+    .text-warning-gold { color: var(--warning) !important; }
+    .text-danger-red { color: var(--danger) !important; }
+
+    /* Custom inline progress bar for stock alignment */
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: var(--primary);
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-pizza-slice"></i>
+      <span>Martinoz<span class="dot">.</span>HQ</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>CEO Dashboard</span>
+      </a>
+      <a href="command-center.html" class="nav-item">
+        <i class="fa-solid fa-network-wired"></i>
+        <span>Command Center</span>
+      </a>
+      <a href="forecasting.html" class="nav-item">
+        <i class="fa-solid fa-brain"></i>
+        <span>AI Forecasting</span>
+      </a>
+      <a href="crm.html" class="nav-item">
+        <i class="fa-solid fa-ticket"></i>
+        <span>Complaint CRM</span>
+      </a>
+      <a href="compliance.html" class="nav-item">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Hygiene Audit</span>
+      </a>
+      <a href="copilot.html" class="nav-item">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+      <a href="sku-dashboard.html" class="nav-item active">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>SKU Dashboard</span>
+      </a>
+      <a href="logistics-kds.html" class="nav-item">
+        <i class="fa-solid fa-truck-ramp-box"></i>
+        <span>Logistics & KDS</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>Martinoz FIP v2.0</p>
+      <p>HQ Operations Control</p>
+    </div>
+  </aside>
+
+  <!-- Main Viewport -->
+  <main class="main-viewport">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="page-title">
+        <h2>SKU Performance & Stock Alignment</h2>
+      </div>
+      <div class="header-actions">
+        <div class="date-time" id="live-clock">
+          <i class="fa-regular fa-clock"></i>
+          <span>Loading time...</span>
+        </div>
+        <div class="bell-notification" id="header-notif-bell" onclick="window.location.href='command-center.html'">
+          <i class="fa-regular fa-bell"></i>
+          <span class="bell-badge" id="header-notif-count">0</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <span class="user-name">Admin Control</span>
+            <span class="user-role">Martinoz Corporate HQ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <section class="content-body">
+      
+      <!-- Key Statistics Row (Inventory specific metrics) -->
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Total Lost Sales (Stockout)</p>
+            <div class="stat-value complaints-val" id="stat-lost-sales">₹0</div>
+            <div class="stat-progress"><div class="stat-progress-bar complaints" id="progress-lost-sales" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-down">
+              <i class="fa-solid fa-triangle-exclamation"></i> Stockout threat active
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-arrow-down-short-wide"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Wastage Value Risk (Overstock)</p>
+            <div class="stat-value orders-val" id="stat-wastage-risk">₹0</div>
+            <div class="stat-progress"><div class="stat-progress-bar orders" id="progress-wastage-risk" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-down">
+              <i class="fa-solid fa-dumpster"></i> Spoilage risk warning
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-scale-unbalanced"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Stock Alignment Score</p>
+            <div class="stat-value revenue-val" id="stat-alignment-score">0%</div>
+            <div class="stat-progress"><div class="stat-progress-bar revenue" id="progress-alignment" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-up">
+              <i class="fa-solid fa-circle-check"></i> Standard target: 90%
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-sliders"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Mismatch Alerts</p>
+            <div class="stat-value complaints-val" id="stat-mismatch-alerts">0</div>
+            <div class="stat-progress"><div class="stat-progress-bar complaints" id="progress-alerts" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-down">
+              <i class="fa-solid fa-bell"></i> Critical deviation alert
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-bell-slash"></i></div>
+        </div>
+      </div>
+
+      <!-- Main Columns Grid -->
+      <div class="grid-sku-main">
+        
+        <!-- Left Side Column: Visualization -->
+        <div class="left-col">
+          <div class="dashboard-card" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-chart-bar highlight-orange"></i> Stock vs Demand comparison</h3>
+              <span class="badge badge-info" id="chart-location-badge">All Territories</span>
+            </div>
+            
+            <div class="chart-container-sku" style="flex-grow: 1;">
+              <canvas id="sku-comparison-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Column: Controls & Grid Table -->
+        <div class="right-col">
+          <div class="dashboard-card" style="margin-bottom: 0;">
+            <div class="card-header" style="padding-bottom: 12px; margin-bottom: 16px;">
+              <h3><i class="fa-solid fa-triangle-exclamation text-orange"></i> Mismatch Control Center</h3>
+            </div>
+
+            <!-- Filters bar -->
+            <div class="sku-controls-bar">
+              <select id="filter-mismatch-type" class="form-control" style="flex-grow: 1;">
+                <option value="all">All Mismatches</option>
+                <option value="stockout">Stockout Risks (Low Stock)</option>
+                <option value="overstock">Overstocks (Low Demand)</option>
+              </select>
+              
+              <select id="filter-sku-outlet" class="form-control" style="flex-grow: 1;">
+                <option value="all">All Outlets</option>
+                <!-- Dynamic Options -->
+              </select>
+            </div>
+
+            <!-- Table of incidents -->
+            <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Outlet</th>
+                    <th>Product SKU</th>
+                    <th>Stock</th>
+                    <th>Demand</th>
+                    <th>Financial Impact</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sku-mismatch-tbody">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="dashboard-card" style="margin-top: 24px;">
+            <div class="card-header" style="padding-bottom: 12px; margin-bottom: 16px;">
+              <h3><i class="fa-solid fa-tags highlight-orange"></i> Dynamic Promotions & Margins</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Promo Create form -->
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="promo-code-input" class="form-control" placeholder="Promo Code (e.g. BOGO)" style="flex-grow: 1; font-size: 12px; height: 32px; text-transform: uppercase;">
+                <input type="number" id="promo-discount-input" class="form-control" placeholder="Disc %" style="width: 70px; font-size: 12px; height: 32px;">
+                <button id="btn-create-promo" class="btn" style="height: 32px; padding: 0 16px; font-size: 12px;">Create</button>
+              </div>
+              
+              <!-- Active Promos list -->
+              <div class="table-container" style="max-height: 140px; overflow-y: auto;">
+                <table class="dashboard-table" style="font-size: 11px;">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Discount</th>
+                      <th>Description</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="promos-tbody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Shared Mock Database -->
+  <script src="data.js"></script>
+  <!-- Page Specific Logic -->
+  <script src="sku-dashboard.js"></script>
+  
+  <script>
+    // Live Clock Update
+    function updateClock() {
+      const clockEl = document.getElementById('live-clock').querySelector('span');
+      const now = new Date();
+      clockEl.textContent = now.toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Notification Count
+    function updateNotifCount() {
+      if (typeof Database !== 'undefined') {
+        const stats = Database.getGlobalStats();
+        document.getElementById('header-notif-count').textContent = stats.openComplaints;
+      }
+    }
+    updateNotifCount();
+  </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Martinoz Complaint CRM and SLA Escalation Manager">
+  <title>Martinoz Pizza FIP | Complaint CRM</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-pizza-slice"></i>
+      <span>Martinoz<span class="dot">.</span>HQ</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>CEO Dashboard</span>
+      </a>
+      <a href="command-center.html" class="nav-item">
+        <i class="fa-solid fa-network-wired"></i>
+        <span>Command Center</span>
+      </a>
+      <a href="forecasting.html" class="nav-item">
+        <i class="fa-solid fa-brain"></i>
+        <span>AI Forecasting</span>
+      </a>
+      <a href="crm.html" class="nav-item active">
+        <i class="fa-solid fa-ticket"></i>
+        <span>Complaint CRM</span>
+      </a>
+      <a href="compliance.html" class="nav-item">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Hygiene Audit</span>
+      </a>
+      <a href="copilot.html" class="nav-item">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+      <a href="sku-dashboard.html" class="nav-item">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>SKU Dashboard</span>
+      </a>
+      <a href="logistics-kds.html" class="nav-item">
+        <i class="fa-solid fa-truck-ramp-box"></i>
+        <span>Logistics & KDS</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>Martinoz FIP v2.0</p>
+      <p>HQ Operations Control</p>
+    </div>
+  </aside>
+
+  <!-- Main Viewport -->
+  <main class="main-viewport">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="page-title">
+        <h2>Complaint Intelligence CRM</h2>
+      </div>
+      <div class="header-actions">
+        <div class="date-time" id="live-clock">
+          <i class="fa-regular fa-clock"></i>
+          <span>Loading time...</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <span class="user-name">Admin Control</span>
+            <span class="user-role">Martinoz Corporate HQ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <section class="content-body">
+      
+      <div class="crm-layout">
+        
+        <!-- Left Side Column: Tickets list -->
+        <div class="tickets-list-wrapper">
+          <div class="card-header" style="padding-bottom:12px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+            <h3><i class="fa-solid fa-ticket-simple text-orange"></i> Complaint Registry</h3>
+            <button class="btn btn-primary btn-sm" id="crm-open-modal-btn">
+              <i class="fa-solid fa-plus"></i> Log Ticket
+            </button>
+          </div>
+
+          <!-- Status Filters -->
+          <div class="ticket-filters" id="crm-ticket-filters">
+            <button class="ticket-btn-filter active" data-status="active">Active (Open/Escalated)</button>
+            <button class="ticket-btn-filter" data-status="Resolved">Resolved</button>
+            <button class="ticket-btn-filter" data-status="all">All Tickets</button>
+          </div>
+
+          <!-- Scroller of tickets -->
+          <div class="tickets-scroller" id="crm-tickets-scroller">
+            <!-- Dynamically populated by crm.js -->
+          </div>
+        </div>
+
+        <!-- Right Side Column: Detailed Inspect Pane -->
+        <div class="ticket-details-pane" id="crm-details-pane">
+          <!-- Dynamically populated or empty state shown on start -->
+          <div class="empty-details-state">
+            <i class="fa-solid fa-clipboard-question"></i>
+            <h3>No Ticket Selected</h3>
+            <p style="font-size:12px; color:var(--text-secondary); margin-top:8px;">Select an active complaint ticket from the registry list to investigate description, outlet metrics, and execute resolution workflows.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Log Complaint Modal Overlay -->
+  <div class="modal-overlay" id="crm-modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header-dialog">
+        <h3><i class="fa-solid fa-circle-plus text-orange"></i> Register Customer Complaint</h3>
+        <button class="overlay-close" id="crm-close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="crm-new-ticket-form">
+        
+        <!-- Outlet selector -->
+        <div class="form-group">
+          <label for="form-outlet-select">Outlet Location</label>
+          <select id="form-outlet-select" class="form-control" required>
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <!-- Category selector -->
+        <div class="form-group">
+          <label for="form-category-select">Complaint Category</label>
+          <select id="form-category-select" class="form-control" required>
+            <option value="Food Safety">Food Safety (Foreign Object, Stale Ingredient)</option>
+            <option value="Taste">Taste / Recipe Deviation</option>
+            <option value="Delivery">Delivery Delay / cold food</option>
+            <option value="Packaging">Improper Packaging / damage</option>
+            <option value="Hygiene">Hygiene / cleanliness concerns</option>
+            <option value="Staff Behavior">Rude / inappropriate staff behavior</option>
+          </select>
+        </div>
+
+        <!-- Priority Selector -->
+        <div class="form-group">
+          <label for="form-priority-select">Urgency Priority</label>
+          <select id="form-priority-select" class="form-control" required>
+            <option value="Low">Low (General Feedback)</option>
+            <option value="Medium" selected>Medium (Standard Incident)</option>
+            <option value="High">High (Severe Customer Churn)</option>
+            <option value="Critical">Critical (Food Safety / Legal Breach)</option>
+          </select>
+        </div>
+
+        <!-- Description text -->
+        <div class="form-group">
+          <label for="form-desc-textarea">Details of Incident</label>
+          <textarea id="form-desc-textarea" class="form-control" rows="4" placeholder="Detail the complaint, customer name, contacts, and what they claimed happened..." required></textarea>
+        </div>
+
+        <!-- CTAs -->
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+          <button type="button" class="btn btn-outline" id="form-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Log Ticket</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Shared Mock Database -->
+  <script src="data.js"></script>
+  <!-- Page Logic Script -->
+  <script src="crm.js"></script>
+  <!-- AI Copilot Integration -->
+  <script src="copilot.js"></script>
+  <script>
+    // Live Clock Update
+    function updateClock() {
+      const clockEl = document.getElementById('live-clock').querySelector('span');
+      const now = new Date();
+      clockEl.textContent = now.toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>

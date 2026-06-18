@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Martinoz Franchise Intelligence Platform - Kitchen, IoT & Supply Chain Logistics Hub">
+  <title>Martinoz Pizza FIP | Logistics & KDS</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Logistics Specific Layout */
+    .grid-logistics-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.1fr;
+      gap: 24px;
+      height: calc(100vh - var(--header-height) - 100px);
+      overflow: hidden;
+    }
+
+    .logistics-col {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .logistics-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      overflow: hidden;
+      box-shadow: var(--shadow-glow);
+      transition: var(--transition-smooth);
+    }
+    .logistics-card:hover {
+      border-color: var(--border-active);
+    }
+
+    .card-body-scroll {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-top: 16px;
+      padding-right: 4px;
+    }
+
+    /* KDS order cards */
+    .kds-order-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 12px;
+      transition: var(--transition-smooth);
+    }
+    .kds-order-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+    }
+    .kds-order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .kds-order-id {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .kds-order-customer {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .kds-order-items {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .kds-order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .kds-order-time {
+      color: var(--text-muted);
+    }
+
+    /* IoT Telemetry status */
+    .telemetry-status-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .telemetry-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .telemetry-value {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: var(--font-heading);
+    }
+
+    /* Supply logistics shipment card */
+    .shipment-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .shipment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .shipment-route {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .shipment-cargo {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .shipment-progress-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .shipment-progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: var(--radius-full);
+      transition: width 0.8s ease;
+    }
+    .shipment-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Charts sizing */
+    .iot-chart-container {
+      height: 200px;
+      position: relative;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-pizza-slice"></i>
+      <span>Martinoz<span class="dot">.</span>HQ</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>CEO Dashboard</span>
+      </a>
+      <a href="command-center.html" class="nav-item">
+        <i class="fa-solid fa-network-wired"></i>
+        <span>Command Center</span>
+      </a>
+      <a href="forecasting.html" class="nav-item">
+        <i class="fa-solid fa-brain"></i>
+        <span>AI Forecasting</span>
+      </a>
+      <a href="crm.html" class="nav-item">
+        <i class="fa-solid fa-ticket"></i>
+        <span>Complaint CRM</span>
+      </a>
+      <a href="compliance.html" class="nav-item">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Hygiene Audit</span>
+      </a>
+      <a href="copilot.html" class="nav-item">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+      <a href="sku-dashboard.html" class="nav-item">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>SKU Dashboard</span>
+      </a>
+      <a href="logistics-kds.html" class="nav-item active">
+        <i class="fa-solid fa-truck-ramp-box"></i>
+        <span>Logistics & KDS</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>Martinoz FIP v2.0</p>
+      <p>HQ Operations Control</p>
+    </div>
+  </aside>
+
+  <!-- Main Viewport -->
+  <main class="main-viewport">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="page-title">
+        <h2>Kitchen, IoT & Supply Chain Logistics Hub</h2>
+      </div>
+      <div class="header-actions">
+        <div class="date-time" id="live-clock">
+          <i class="fa-regular fa-clock"></i>
+          <span>Loading time...</span>
+        </div>
+        <div class="bell-notification" id="header-notif-bell" onclick="window.location.href='command-center.html'">
+          <i class="fa-regular fa-bell"></i>
+          <span class="bell-badge" id="header-notif-count">0</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <span class="user-name">Admin Control</span>
+            <span class="user-role">Martinoz Corporate HQ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <section class="content-body" style="padding: 24px;">
+      <div class="grid-logistics-main">
+        
+        <!-- Left Column: Kitchen Display System (KDS) -->
+        <div class="logistics-col">
+          <div class="logistics-card">
+            <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+              <h3><i class="fa-solid fa-fire highlight-orange"></i> Live Kitchen KDS Queue</h3>
+              <select id="filter-kds-outlet" class="form-control" style="width: 140px; font-size: 11px; height: 28px; padding: 2px 8px;">
+                <option value="all">All Outlets</option>
+              </select>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: space-between; font-size: 11px; color: var(--text-secondary); background: rgba(0,0,0,0.1); padding: 8px; border-radius: 6px;">
+              <div>Avg Prep Time: <strong class="highlight-orange" id="kds-avg-prep">15m</strong></div>
+              <div>Active Tickets: <strong class="highlight-gold" id="kds-ticket-count">0</strong></div>
+            </div>
+
+            <div class="card-body-scroll" id="kds-queue-container">
+              <!-- Dynamic Cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Column: Refrigerator & Oven IoT Telemetry -->
+        <div class="logistics-col">
+          <div class="logistics-card">
+            <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+              <h3><i class="fa-solid fa-temperature-three-quarters text-blue"></i> Real-time IoT Telemetry</h3>
+              <select id="filter-telemetry-outlet" class="form-control" style="width: 120px; font-size: 11px; height: 28px; padding: 2px 8px;">
+                <!-- Dynamically filled -->
+              </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="telemetry-status-box">
+                <div>
+                  <div class="telemetry-label">Cold Storage</div>
+                  <div class="telemetry-value text-blue" id="telemetry-fridge">3.2°C</div>
+                </div>
+                <i class="fa-solid fa-snowflake text-blue" style="font-size: 20px;"></i>
+              </div>
+              <div class="telemetry-status-box">
+                <div>
+                  <div class="telemetry-label">Baking Oven</div>
+                  <div class="telemetry-value highlight-orange" id="telemetry-oven">240°C</div>
+                </div>
+                <i class="fa-solid fa-fire highlight-orange" style="font-size: 20px;"></i>
+              </div>
+            </div>
+
+            <!-- Temperature Alarms -->
+            <div id="telemetry-warning-banner" class="ai-alert-item critical" style="display: none; padding: 8px 12px; margin-top: 4px; font-size: 11px; gap: 8px;">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size: 14px; margin-top: 2px;"></i>
+              <div>
+                <strong style="display: block;">Dairy Spoilage Risk Warning!</strong>
+                Fridge temperature exceeded standard compliance threshold (>5.0°C).
+              </div>
+            </div>
+
+            <div class="iot-chart-container">
+              <canvas id="telemetry-fridge-chart"></canvas>
+            </div>
+            <div class="iot-chart-container" style="margin-top: 10px;">
+              <canvas id="telemetry-oven-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Ingredient Distribution Logistics -->
+        <div class="logistics-col">
+          <div class="logistics-card">
+            <div class="card-header" style="padding-bottom: 8px; margin-bottom: 12px;">
+              <h3><i class="fa-solid fa-truck-fast highlight-green"></i> Supply Chain Logistics</h3>
+              <span class="badge badge-success">HQ Dispatch Hub</span>
+            </div>
+
+            <div class="card-body-scroll" id="logistics-shipments-container">
+              <!-- Dynamic Shipments -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Shared Mock Database -->
+  <script src="data.js"></script>
+  <!-- Page Specific Logic -->
+  <script src="logistics-kds.js"></script>
+  
+  <script>
+    // Live Clock Update
+    function updateClock() {
+      const clockEl = document.getElementById('live-clock').querySelector('span');
+      const now = new Date();
+      clockEl.textContent = now.toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Check Notification Count
+    function updateNotifCount() {
+      if (typeof Database !== 'undefined') {
+        const stats = Database.getGlobalStats();
+        document.getElementById('header-notif-count').textContent = stats.openComplaints;
+      }
+    }
+    updateNotifCount();
+  </script>
+</body>
+</html>

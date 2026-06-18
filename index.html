@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Martinoz Franchise Intelligence Platform - CEO Executive Dashboard">
+  <title>Martinoz Pizza FIP | Executive Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-pizza-slice"></i>
+      <span>Martinoz<span class="dot">.</span>HQ</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-item active">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>CEO Dashboard</span>
+      </a>
+      <a href="command-center.html" class="nav-item">
+        <i class="fa-solid fa-network-wired"></i>
+        <span>Command Center</span>
+      </a>
+      <a href="forecasting.html" class="nav-item">
+        <i class="fa-solid fa-brain"></i>
+        <span>AI Forecasting</span>
+      </a>
+      <a href="crm.html" class="nav-item">
+        <i class="fa-solid fa-ticket"></i>
+        <span>Complaint CRM</span>
+      </a>
+      <a href="compliance.html" class="nav-item">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Hygiene Audit</span>
+      </a>
+      <a href="copilot.html" class="nav-item">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+      <a href="sku-dashboard.html" class="nav-item">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>SKU Dashboard</span>
+      </a>
+      <a href="logistics-kds.html" class="nav-item">
+        <i class="fa-solid fa-truck-ramp-box"></i>
+        <span>Logistics & KDS</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>Martinoz FIP v2.0</p>
+      <p>HQ Operations Control</p>
+    </div>
+  </aside>
+
+  <!-- Main Viewport -->
+  <main class="main-viewport">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="page-title">
+        <h2>Executive Dashboard</h2>
+      </div>
+      <div class="header-actions">
+        <div class="date-time" id="live-clock">
+          <i class="fa-regular fa-clock"></i>
+          <span>Loading time...</span>
+        </div>
+        <div class="bell-notification" id="header-notif-bell" onclick="window.location.href='command-center.html'">
+          <i class="fa-regular fa-bell"></i>
+          <span class="bell-badge" id="header-notif-count">0</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <span class="user-name">Admin Control</span>
+            <span class="user-role">Martinoz Corporate HQ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <section class="content-body">
+      
+      <!-- Key Statistics Row -->
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Total Revenue (Today)</p>
+            <div class="stat-value revenue-val" id="stat-revenue">₹0</div>
+            <div class="stat-progress"><div class="stat-progress-bar revenue" id="progress-revenue" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-up">
+              <i class="fa-solid fa-arrow-trend-up"></i> +14.2% vs Last Week
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Total Orders (Today)</p>
+            <div class="stat-value orders-val" id="stat-orders">0</div>
+            <div class="stat-progress"><div class="stat-progress-bar orders" id="progress-orders" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-up">
+              <i class="fa-solid fa-arrow-trend-up"></i> +8.7% vs Last Week
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-basket-shopping"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Avg Hygiene Score</p>
+            <div class="stat-value hygiene-val" id="stat-hygiene">0%</div>
+            <div class="stat-progress"><div class="stat-progress-bar hygiene" id="progress-hygiene" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-up" id="hygiene-trend-container">
+              <i class="fa-solid fa-circle-check"></i> Standard Compliant
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-hand-holding-hand"></i></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info" style="flex-grow: 1;">
+            <p>Active Complaints</p>
+            <div class="stat-value complaints-val" id="stat-complaints">0</div>
+            <div class="stat-progress"><div class="stat-progress-bar complaints" id="progress-complaints" style="width: 0%;"></div></div>
+            <div class="stat-trend trend-down" id="complaints-trend-container">
+              <i class="fa-solid fa-arrow-trend-down"></i> -18.2% vs Last Week
+            </div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-receipt"></i></div>
+        </div>
+      </div>
+
+      <!-- Main Columns Grid -->
+      <div class="grid-dashboard-main">
+        
+        <!-- Left Side Column -->
+        <div class="left-col">
+          
+          <!-- AI Insights Panel -->
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-wand-magic-sparkles text-orange"></i> AI Executive Insights</h3>
+              <span class="badge badge-info">Real-time Feed</span>
+            </div>
+            <div class="ai-alerts-list" id="ai-insights-container">
+              <!-- Dynamically populated by dashboard.js -->
+            </div>
+          </div>
+
+          <!-- Active Alerts Outlets Table -->
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-triangle-exclamation text-orange"></i> High-Risk Outlets Checklist</h3>
+              <span class="badge badge-danger" id="risk-outlets-count">0 Outlets</span>
+            </div>
+            <div class="table-container">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Outlet ID</th>
+                    <th>Name</th>
+                    <th>City</th>
+                    <th>Hygiene Score</th>
+                    <th>Open Complaints</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="risk-outlets-tbody">
+                  <!-- Dynamically populated by dashboard.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Side Column -->
+        <div class="right-col">
+          
+          <!-- Leaderboard / Standings Panel -->
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-crown text-gold"></i> Franchise Standings</h3>
+              <div class="ticket-filters">
+                <button class="ticket-btn-filter active" id="leaderboard-top-btn">Top 5</button>
+                <button class="ticket-btn-filter" id="leaderboard-bottom-btn">Bottom 5</button>
+              </div>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list-container">
+              <!-- Dynamically populated by dashboard.js -->
+            </div>
+          </div>
+
+          <!-- Quick Operations Panel -->
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-gears"></i> Core Operations Quick Actions</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <button class="btn btn-outline btn-block" onclick="window.location.href='command-center.html'" style="justify-content: flex-start;">
+                <i class="fa-solid fa-magnifying-glass"></i> Search Franchise Outlets
+              </button>
+              <button class="btn btn-outline btn-block" onclick="window.location.href='forecasting.html'" style="justify-content: flex-start;">
+                <i class="fa-solid fa-calculator"></i> Run AI Demand Planner
+              </button>
+              <button class="btn btn-outline btn-block" onclick="window.location.href='crm.html'" style="justify-content: flex-start;">
+                <i class="fa-solid fa-circle-plus"></i> Register Customer Complaint
+              </button>
+              <button class="btn btn-outline btn-block" onclick="window.location.href='compliance.html'" style="justify-content: flex-start;">
+                <i class="fa-solid fa-clipboard-check"></i> Fill Out Hygiene Audit Check
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Shared Mock Database -->
+  <script src="data.js"></script>
+  <!-- Page Logic Script -->
+  <script src="dashboard.js"></script>
+  <!-- AI Copilot Integration -->
+  <script src="copilot.js"></script>
+  <script>
+    // Live Clock Update
+    function updateClock() {
+      const clockEl = document.getElementById('live-clock').querySelector('span');
+      const now = new Date();
+      clockEl.textContent = now.toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
