@@ -499,7 +499,109 @@ Ask me questions like:<br>
   // 4. API Request Wrapper call
   // ==========================================
 
-  function fetchCopilotResponse(typingIndicatorNode) {
+  async function getApiKey() {
+    let key = localStorage.getItem('martinoz_groq_api_key');
+    if (key && key.trim()) {
+      return key.trim();
+    }
+
+    try {
+      const response = await fetch('/.env');
+      if (response.ok) {
+        const text = await response.text();
+        const match = text.match(/GROQ_API_KEY\s*=\s*(gsk_[a-zA-Z0-9_]+)/) || text.match(/GROQ_API_KEY\s*=\s*([^\n\r]+)/);
+        if (match && match[1]) {
+          key = match[1].trim().replace(/['"]/g, '');
+          if (key) {
+            localStorage.setItem('martinoz_groq_api_key', key);
+            return key;
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore env load failure
+    }
+    return null;
+  }
+
+  function appendApiKeyPrompt(onSuccess) {
+    const container = document.getElementById('copilot-chat-messages-container');
+    if (container.querySelector('.api-key-prompt-bubble')) {
+      return;
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'copilot-msg copilot-msg-agent api-key-prompt-bubble';
+    bubble.innerHTML = `
+      <div style="margin-bottom: 10px;">
+        🔑 <strong>Groq API Key Required</strong><br>
+        Martinoz OS is running in serverless client-only mode. Enter your Groq API key to activate the assistant. It will be cached securely in your browser's local storage.
+      </div>
+      <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box;">
+        <input type="password" id="copilot-api-key-input" placeholder="gsk_..." style="
+          flex-grow: 1;
+          background: rgba(0, 0, 0, 0.25);
+          border: 1px solid var(--border-glass);
+          color: #fff;
+          padding: 8px 12px;
+          border-radius: var(--radius-sm);
+          font-size: 13px;
+          outline: none;
+        " />
+        <button id="copilot-api-key-submit" style="
+          background: var(--primary);
+          color: #fff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: var(--radius-sm);
+          font-size: 13px;
+          cursor: pointer;
+          font-weight: 600;
+        ">Submit</button>
+      </div>
+    `;
+    container.appendChild(bubble);
+    container.scrollTop = container.scrollHeight;
+
+    const input = bubble.querySelector('#copilot-api-key-input');
+    const btn = bubble.querySelector('#copilot-api-key-submit');
+
+    const handleSubmit = () => {
+      const val = input.value.trim();
+      if (val) {
+        localStorage.setItem('martinoz_groq_api_key', val);
+        bubble.innerHTML = `✅ <strong>API Key Saved!</strong> Activating assistant...`;
+        setTimeout(() => {
+          if (bubble && bubble.parentNode) {
+            bubble.parentNode.removeChild(bubble);
+          }
+        }, 1500);
+        onSuccess(val);
+      }
+    };
+
+    btn.addEventListener('click', handleSubmit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        handleSubmit();
+      }
+    });
+    input.focus();
+  }
+
+  async function fetchCopilotResponse(typingIndicatorNode) {
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      if (typingIndicatorNode && typingIndicatorNode.parentNode) {
+        typingIndicatorNode.parentNode.removeChild(typingIndicatorNode);
+      }
+      appendApiKeyPrompt(() => {
+        const newIndicator = appendTypingIndicator();
+        fetchCopilotResponse(newIndicator);
+      });
+      return;
+    }
+
     const systemContext = generateSystemContext();
     
     // Build context dialogue message list
@@ -513,18 +615,24 @@ Ask me questions like:<br>
       messages.push({ role: h.role, content: h.content });
     });
 
-    const apiBase = (window.location.port && window.location.port !== '8000' && window.location.hostname === 'localhost') ? 'http://localhost:8000' : '';
-    fetch(apiBase + '/api/copilot', {
+    fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: jsonStringify({
-        messages: messages
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        messages: messages,
+        temperature: 0.2
       })
     })
     .then(res => {
       if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('martinoz_groq_api_key');
+          throw new Error("Invalid API Key. Please enter a valid key.");
+        }
         throw new Error(`Server returned code ${res.status}`);
       }
       return res.json();
@@ -532,11 +640,10 @@ Ask me questions like:<br>
     .navigateResponse(typingIndicatorNode)
     .catch(err => {
       console.error("Copilot communication error:", err);
-      // Remove typing bubble and show fallback message
       if (typingIndicatorNode && typingIndicatorNode.parentNode) {
         typingIndicatorNode.parentNode.removeChild(typingIndicatorNode);
       }
-      appendMessage('agent', `⚠️ **Connection Error**: I could not reach the operations LLM API. Please ensure that you have launched our server by running \`node server.js\` and are accessing the platform at \`http://localhost:8000\`.`);
+      appendMessage('agent', `⚠️ **LLM Connection Error**: ${err.message || 'Unable to connect to Groq API. Please check your network and API key.'}`);
     });
   }
 
