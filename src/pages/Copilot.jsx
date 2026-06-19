@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import TopHeader from '../components/TopHeader';
 import { useDatabase } from '../context/DatabaseContext';
 import { Bar, Line, Doughnut, Radar } from 'react-chartjs-2';
+import TiltCard from '../components/TiltCard';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -74,7 +75,7 @@ export default function Copilot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [copilotMode, setCopilotMode] = useState('both'); // 'both' (Text & Graph) or 'graph' (Graph Only Focus)
+  const [copilotMode, setCopilotMode] = useState('text'); // 'text' (Text Analysis Only) or 'graph' (Graph Mode Only)
   const feedRef = useRef(null);
 
   useEffect(() => {
@@ -141,18 +142,6 @@ ${iotSummary}
 === INGREDIENT DISTRIBUTION SHIPMENTS ===
 ${shipmentsSummary}
 
-=== DYNAMIC GRAPH VISUALIZATION COMMANDS ===
-If the user asks to see, plot, graph, display, filter, chart, or analyze a specific metric or city visually, you MUST append a command at the very end of your response in the format:
-[CMD: {"metric": "<metric_name>", "city": "<city_name>", "chartType": "<line|bar|doughnut|radar>"}]
-Where:
-- <metric_name> is one of: "sales", "hygiene", "wastage", "complaints", "inventory", "latency", "telemetry", "logistics"
-- <city_name> is "all" or a capitalized city name (e.g. "Ahmedabad", "Surat", "Vadodara", "Bopal", "Palanpur")
-- <chartType> is the best representation:
-  - "line" for telemetries, latency curves, or weekly sales trends.
-  - "radar" for hygiene score distributions across outlets.
-  - "doughnut" for wastage contributions or categories ratios.
-  - "bar" for general comparison across outlets.
-
 Answer questions concisely, professionally, with markdown bolding and lists. Do not mention mock data.`;
   }
 
@@ -176,8 +165,10 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
 
     // Prompt engineering based on selected mode
     let modeInstruction = "";
-    if (copilotMode === 'graph') {
-      modeInstruction = "\n[CRITICAL]: The user has activated GRAPH MODE. You MUST end your response with a [CMD: ...] command card to draw a visual chart. Keep the accompanying text to a brief 1-2 sentence summary.";
+    if (copilotMode === 'text') {
+      modeInstruction = "\n[CRITICAL]: The user has activated TEXT MODE. You MUST answer the query using natural text ONLY. Do NOT output any command block or JSON command tag like [CMD: ...] under any circumstance. Focus on textual analysis and explanation.";
+    } else {
+      modeInstruction = "\n[CRITICAL]: The user has activated GRAPH MODE. You MUST end your response with a visual command tag at the very end of your response in this exact format:\n[CMD: {\"metric\": \"<metric_name>\", \"city\": \"<city_name>\", \"chartType\": \"<line|bar|doughnut|radar>\"}]\nWhere metric_name must be one of: 'sales', 'hygiene', 'wastage', 'complaints', 'inventory', 'latency', 'telemetry', 'logistics'. Keep accompanying text to a brief 1-sentence summary.";
     }
 
     const msgPayload = [
@@ -187,7 +178,6 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
     ];
 
     try {
-      // Using ultra-fast Groq Llama 3.1 8B instant model for zero lag
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -208,22 +198,25 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
       setMessages(prev => {
         const newMsgs = [...prev];
         
-        // Push the agent's text response (only if not in pure graph mode, or as a small caption/explanator)
+        // Push the text response
         newMsgs.push({ role: 'agent', content: cleanAnswer });
 
-        if (match) {
-          try {
-            const cmdObj = JSON.parse(match[1]);
-            newMsgs.push({ 
-              role: 'chart', 
-              metric: cmdObj.metric, 
-              city: cmdObj.city, 
-              chartType: cmdObj.chartType || 'bar' 
-            });
-          } catch (e) {}
-        } else if (copilotMode === 'graph') {
-          // Force a chart if none was generated in graph mode
-          newMsgs.push({ role: 'chart', metric: 'sales', city: 'all', chartType: 'bar' });
+        // Push graph card ONLY if in graph mode and there is a match
+        if (copilotMode === 'graph') {
+          if (match) {
+            try {
+              const cmdObj = JSON.parse(match[1]);
+              newMsgs.push({ 
+                role: 'chart', 
+                metric: cmdObj.metric, 
+                city: cmdObj.city, 
+                chartType: cmdObj.chartType || 'bar' 
+              });
+            } catch (e) {}
+          } else {
+            // Fallback default chart in graph mode
+            newMsgs.push({ role: 'chart', metric: 'sales', city: 'all', chartType: 'bar' });
+          }
         }
 
         localStorage.setItem(CHAT_HISTORY_LS, JSON.stringify(newMsgs));
@@ -268,7 +261,6 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
     }
 
     if (metric === 'telemetry' || chartType === 'line') {
-      // Output a continuous line trend
       const labels = filteredOutlets.map(o => o.name);
       const colors = METRIC_COLORS[metric] || METRIC_COLORS.sales;
       const dataValues = filteredOutlets.map(o => {
@@ -295,7 +287,6 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
     }
 
     if (chartType === 'doughnut') {
-      // Represent proportional contributions
       const topOutlets = [...filteredOutlets].sort((a, b) => b.wastageKg - a.wastageKg).slice(0, 5);
       return {
         labels: topOutlets.map(o => o.name),
@@ -309,7 +300,6 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
     }
 
     if (chartType === 'radar') {
-      // Comparison across dimensions
       const topOutlets = [...filteredOutlets].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 6);
       return {
         labels: topOutlets.map(o => o.name),
@@ -325,7 +315,6 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
       };
     }
 
-    // Default bar chart
     const getVal = (o) => {
       if (metric === 'sales') return o.sales;
       if (metric === 'hygiene') return o.hygieneScore;
@@ -412,7 +401,7 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
               </div>
             </div>
 
-            {/* Balanced Mode vs Graph Mode Switch */}
+            {/* Strict Text Analysis vs AI Graph Mode Switch */}
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <div style={{
                 display: 'inline-flex',
@@ -424,36 +413,38 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
                 fontWeight: '600'
               }}>
                 <button 
-                  className={`btn-notebook-mode ${copilotMode === 'both' ? 'active' : ''}`}
-                  onClick={() => setCopilotMode('both')}
+                  className={`btn-notebook-mode ${copilotMode === 'text' ? 'active' : ''}`}
+                  onClick={() => setCopilotMode('text')}
                   style={{
-                    padding: '4px 10px',
+                    padding: '4px 12px',
                     borderRadius: '6px',
-                    background: copilotMode === 'both' ? 'var(--primary)' : 'transparent',
+                    background: copilotMode === 'text' ? 'var(--primary)' : 'transparent',
                     border: 'none',
-                    color: copilotMode === 'both' ? '#fff' : 'var(--text-muted)',
+                    color: copilotMode === 'text' ? '#fff' : 'var(--text-muted)',
                     cursor: 'pointer',
                     fontSize: '11px',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    fontWeight: '600'
                   }}
                 >
-                  💬 Balanced
+                  💬 Text Analysis
                 </button>
                 <button 
                   className={`btn-notebook-mode ${copilotMode === 'graph' ? 'active' : ''}`}
                   onClick={() => setCopilotMode('graph')}
                   style={{
-                    padding: '4px 10px',
+                    padding: '4px 12px',
                     borderRadius: '6px',
                     background: copilotMode === 'graph' ? 'var(--primary)' : 'transparent',
                     border: 'none',
                     color: copilotMode === 'graph' ? '#fff' : 'var(--text-muted)',
                     cursor: 'pointer',
                     fontSize: '11px',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    fontWeight: '600'
                   }}
                 >
-                  📊 Graph Focus
+                  📊 AI Graph Mode
                 </button>
               </div>
               <button className="btn-outline-sm" onClick={clearChat} style={{ margin: 0, height: '28px', padding: '2px 8px', fontSize: '11px' }}>
@@ -466,19 +457,19 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
             {messages.map((msg, i) => {
               if (msg.role === 'chart') {
                 return (
-                  <div key={i} className="chat-bubble agent inline-chart-card" style={{ maxWidth: '100%' }}>
+                  <TiltCard key={i} className="chat-bubble agent inline-chart-card" maxTilt={3} style={{ maxWidth: '100%', padding: '20px', background: 'var(--bg-card)' }}>
                     <div className="inline-chart-header">
                       <h4>
                         <i className="fa-solid fa-chart-column highlight-orange"></i> {METRIC_TITLES[msg.metric] || 'Franchise Metrics'} - {msg.city === 'all' ? 'All Territories' : msg.city}
                       </h4>
                       <span className="badge badge-info" style={{ fontSize: '8px', textTransform: 'uppercase' }}>
-                        {msg.chartType || 'bar'} chart
+                        3D {msg.chartType || 'bar'} visualization
                       </span>
                     </div>
                     <div className="inline-chart-wrapper" style={{ height: '240px', position: 'relative' }}>
                       {renderChart(msg.metric, msg.city, msg.chartType)}
                     </div>
-                  </div>
+                  </TiltCard>
                 );
               }
 
@@ -489,10 +480,10 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
                   key={i} 
                   className={`chat-bubble ${msg.role}`} 
                   style={{
-                    // Shrink details if in graph mode to focus purely on visual output
                     opacity: isGraphFocusMessage ? 0.75 : 1,
                     fontSize: isGraphFocusMessage ? '12px' : '13px',
-                    borderLeft: isGraphFocusMessage ? '2px solid var(--primary)' : 'none'
+                    borderLeft: isGraphFocusMessage ? '2px solid var(--primary)' : 'none',
+                    display: isGraphFocusMessage ? 'block' : 'inline-block'
                   }}
                   dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.content) }} 
                 />
