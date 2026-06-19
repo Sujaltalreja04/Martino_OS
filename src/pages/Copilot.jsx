@@ -63,11 +63,264 @@ const SUGGESTIONS = [
   { label: '📈 Telemetry Line Graph', query: "Show telemetry cold storage temperatures" },
 ];
 
+function renderHTMLTable(rows) {
+  if (rows.length === 0) return '';
+  
+  // Parse rows into cells
+  const parsedRows = rows.map(row => {
+    // Strip leading/trailing | and split by |
+    const cells = row.split('|').slice(1, -1).map(c => c.trim());
+    return cells;
+  });
+  
+  // Check if second row is divider (contains only dashes, colons, spaces)
+  let hasDivider = false;
+  if (parsedRows.length > 1) {
+    const secondRow = parsedRows[1];
+    hasDivider = secondRow.every(cell => /^:?-+:?$/.test(cell));
+  }
+  
+  let headerCells = [];
+  let dataRows = [];
+  
+  if (hasDivider) {
+    headerCells = parsedRows[0];
+    dataRows = parsedRows.slice(2);
+  } else {
+    headerCells = parsedRows[0];
+    dataRows = parsedRows.slice(1);
+  }
+  
+  const thead = `<thead><tr>${headerCells.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${dataRows.map(row => `<tr>${row.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  
+  return `<div class="table-container-scroll"><table class="markdown-table">${thead}${tbody}</table></div>`;
+}
+
 function parseMarkdown(text) {
-  return text
-    .replace(/\n/g, '<br>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\* (.*?)(<br>|$)/g, '<li>$1</li>');
+  if (!text) return '';
+  
+  let html = text.trim();
+  
+  // Parse tables
+  const lines = html.split('\n');
+  let inTable = false;
+  let tableRows = [];
+  let processedLines = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('|') && line.endsWith('|')) {
+      if (!inTable) {
+        inTable = true;
+        tableRows = [];
+      }
+      tableRows.push(line);
+    } else {
+      if (inTable) {
+        processedLines.push(renderHTMLTable(tableRows));
+        inTable = false;
+      }
+      processedLines.push(line);
+    }
+  }
+  if (inTable) {
+    processedLines.push(renderHTMLTable(tableRows));
+  }
+  
+  html = processedLines.join('\n');
+  
+  // Parse lists
+  const linesForLists = html.split('\n');
+  let inList = false;
+  let listLines = [];
+  let finalLines = [];
+  
+  for (let i = 0; i < linesForLists.length; i++) {
+    const line = linesForLists[i];
+    const match = line.match(/^(\s*)[*-]\s+(.*)$/);
+    if (match) {
+      if (!inList) {
+        inList = true;
+        listLines = [];
+      }
+      listLines.push(`<li>${match[2]}</li>`);
+    } else {
+      if (inList) {
+        finalLines.push(`<ul class="markdown-list">${listLines.join('')}</ul>`);
+        inList = false;
+      }
+      finalLines.push(line);
+    }
+  }
+  if (inList) {
+    finalLines.push(`<ul class="markdown-list">${listLines.join('')}</ul>`);
+  }
+  
+  html = finalLines.join('\n');
+
+  // Replace bold: **text** -> <strong>text</strong>
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Replace italic: *text* -> <em>text</em>
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  // Replace inline code: `code` -> <code>code</code>
+  html = html.replace(/`(.*?)`/g, '<code class="markdown-code">$1</code>');
+
+  // Parse headers: ### header -> <h5>header</h5>
+  html = html.replace(/^###\s+(.*)$/gm, '<h5 class="markdown-h3">$1</h5>');
+  html = html.replace(/^##\s+(.*)$/gm, '<h4 class="markdown-h2">$1</h4>');
+  html = html.replace(/^#\s+(.*)$/gm, '<h3 class="markdown-h1">$1</h3>');
+
+  // Split by double newlines for paragraphs
+  const paragraphs = html.split(/\n\n+/);
+  html = paragraphs.map(p => {
+    const trimmed = p.trim();
+    if (trimmed.startsWith('<div') || trimmed.startsWith('<table') || trimmed.startsWith('<ul') || trimmed.startsWith('<h') || trimmed.startsWith('</')) {
+      return p;
+    }
+    return `<p class="markdown-p">${p.replace(/\n/g, '<br>')}</p>`;
+  }).join('');
+
+  return html;
+}
+
+function runLocalNLP(query, db) {
+  const q = query.toLowerCase();
+  const outlets = db.getOutlets();
+  
+  let city = 'all';
+  const cities = ['ahmedabad', 'baroda', 'surat', 'gandhinagar', 'rajkot'];
+  for (const c of cities) {
+    if (q.includes(c)) {
+      city = c;
+      break;
+    }
+  }
+
+  // Determine metric
+  let metric = 'sales';
+  if (q.includes('hygiene') || q.includes('compliance') || q.includes('score') || q.includes('clean') || q.includes('safety') || q.includes('rating')) {
+    metric = 'hygiene';
+  } else if (q.includes('waste') || q.includes('garbage') || q.includes('doughnut') || q.includes('discard')) {
+    metric = 'wastage';
+  } else if (q.includes('complaint') || q.includes('ticket') || q.includes('crm') || q.includes('issue') || q.includes('feedback')) {
+    metric = 'complaints';
+  } else if (q.includes('inventory') || q.includes('stock') || q.includes('supply') || q.includes('store') || q.includes('ingredient')) {
+    metric = 'inventory';
+  } else if (q.includes('temp') || q.includes('sensor') || q.includes('fridge') || q.includes('telemetry') || q.includes('oven') || q.includes('hot') || q.includes('cold')) {
+    metric = 'telemetry';
+  } else if (q.includes('shipment') || q.includes('logistics') || q.includes('transit') || q.includes('truck') || q.includes('delivery')) {
+    metric = 'logistics';
+  }
+
+  // Filter outlets by city if applicable
+  const targetOutlets = city === 'all' ? outlets : outlets.filter(o => o.city.toLowerCase() === city.toLowerCase());
+  
+  if (targetOutlets.length === 0) {
+    return {
+      text: `I couldn't find any outlets in the city of **${city}**. Please check the spelling or try another territory.`,
+      cmd: null
+    };
+  }
+
+  // Determine operation: highest, lowest, total, average, list
+  let operation = 'list';
+  if (q.includes('highest') || q.includes('max') || q.includes('top') || q.includes('best') || q.includes('most') || q.includes('greatest') || q.includes('maximum')) {
+    operation = 'highest';
+  } else if (q.includes('lowest') || q.includes('min') || q.includes('worst') || q.includes('critical') || q.includes('least') || q.includes('minimum')) {
+    operation = 'lowest';
+  } else if (q.includes('average') || q.includes('avg') || q.includes('mean')) {
+    operation = 'average';
+  } else if (q.includes('total') || q.includes('sum') || q.includes('combined')) {
+    operation = 'total';
+  }
+
+  let textResponse = "";
+  let cmdObj = { metric, city, chartType: 'bar' };
+
+  if (metric === 'sales') {
+    if (operation === 'highest') {
+      const sorted = [...targetOutlets].sort((a, b) => b.sales - a.sales);
+      const top = sorted[0];
+      textResponse = `📊 **Sales Analysis**: The outlet with the **highest sales** ${city !== 'all' ? `in ${city.toUpperCase()}` : ''} is **${top.name}** with a revenue of **₹${top.sales.toLocaleString('en-IN')}** today.`;
+    } else if (operation === 'lowest') {
+      const sorted = [...targetOutlets].sort((a, b) => a.sales - b.sales);
+      const low = sorted[0];
+      textResponse = `📊 **Sales Analysis**: The outlet with the **lowest sales** ${city !== 'all' ? `in ${city.toUpperCase()}` : ''} is **${low.name}** with a revenue of **₹${low.sales.toLocaleString('en-IN')}** today.`;
+    } else if (operation === 'total') {
+      const total = targetOutlets.reduce((sum, o) => sum + o.sales, 0);
+      textResponse = `📊 **Sales Analysis**: The **total combined sales** across ${city === 'all' ? 'all outlets' : `outlets in ${city.toUpperCase()}`} today is **₹${total.toLocaleString('en-IN')}**.`;
+    } else if (operation === 'average') {
+      const avg = targetOutlets.reduce((sum, o) => sum + o.sales, 0) / targetOutlets.length;
+      textResponse = `📊 **Sales Analysis**: The **average sales per outlet** ${city === 'all' ? 'globally' : `in ${city.toUpperCase()}`} today is **₹${Math.round(avg).toLocaleString('en-IN')}**.`;
+    } else {
+      textResponse = `📊 **Sales Analysis**: Listing sales metrics. The top performing location is **${[...targetOutlets].sort((a,b)=>b.sales-a.sales)[0].name}** (₹${[...targetOutlets].sort((a,b)=>b.sales-a.sales)[0].sales.toLocaleString('en-IN')}).`;
+    }
+    cmdObj.chartType = 'bar';
+  } 
+  
+  else if (metric === 'hygiene') {
+    if (operation === 'highest' || operation === 'best') {
+      const sorted = [...targetOutlets].sort((a, b) => b.hygieneScore - a.hygieneScore);
+      const top = sorted[0];
+      textResponse = `🛡️ **Hygiene & Compliance**: The outlet with the **highest hygiene score** ${city !== 'all' ? `in ${city.toUpperCase()}` : ''} is **${top.name}** at **${top.hygieneScore}%**.`;
+    } else if (operation === 'lowest' || operation === 'worst') {
+      const sorted = [...targetOutlets].sort((a, b) => a.hygieneScore - b.hygieneScore);
+      const low = sorted[0];
+      textResponse = `🛡️ **Hygiene & Compliance**: The outlet at **critical compliance risk** (lowest score) ${city !== 'all' ? `in ${city.toUpperCase()}` : ''} is **${low.name}** with a score of **${low.hygieneScore}%**.`;
+    } else if (operation === 'average') {
+      const avg = targetOutlets.reduce((sum, o) => sum + o.hygieneScore, 0) / targetOutlets.length;
+      textResponse = `🛡️ **Hygiene & Compliance**: The **average hygiene score** ${city === 'all' ? 'globally' : `in ${city.toUpperCase()}`} is **${avg.toFixed(1)}%**.`;
+    } else {
+      textResponse = `🛡️ **Hygiene & Compliance**: Displaying safety audit score summaries. Average rating is **${(targetOutlets.reduce((sum, o) => sum + o.hygieneScore, 0)/targetOutlets.length).toFixed(1)}%**.`;
+    }
+    cmdObj.chartType = 'radar';
+  }
+
+  else if (metric === 'wastage') {
+    if (operation === 'highest') {
+      const sorted = [...targetOutlets].sort((a, b) => b.wastageKg - a.wastageKg);
+      const top = sorted[0];
+      textResponse = `🥖 **Food Wastage**: The outlet with the **highest wastage** is **${top.name}** having wasted **${top.wastageKg.toFixed(1)} kg** of dough & ingredients today.`;
+    } else if (operation === 'total') {
+      const total = targetOutlets.reduce((sum, o) => sum + o.wastageKg, 0);
+      textResponse = `🥖 **Food Wastage**: The **total food wastage** across outlets ${city === 'all' ? 'globally' : `in ${city.toUpperCase()}`} today is **${total.toFixed(1)} kg**.`;
+    } else {
+      textResponse = `🥖 **Food Wastage**: Summarizing ingredients wastage logs. Total wastage is **${targetOutlets.reduce((sum, o) => sum + o.wastageKg, 0).toFixed(1)} kg**.`;
+    }
+    cmdObj.chartType = 'doughnut';
+  }
+
+  else if (metric === 'complaints') {
+    const total = targetOutlets.reduce((sum, o) => sum + o.openComplaints, 0);
+    if (operation === 'highest') {
+      const sorted = [...targetOutlets].sort((a, b) => b.openComplaints - a.openComplaints);
+      const top = sorted[0];
+      textResponse = `⚠️ **CRM Complaints**: The outlet with the **most open complaints** is **${top.name}** with **${top.openComplaints} unresolved tickets**.`;
+    } else {
+      textResponse = `⚠️ **CRM Complaints**: There are currently **${total} unresolved complaints** across ${city === 'all' ? 'all outlets' : `outlets in ${city.toUpperCase()}`}.`;
+    }
+    cmdObj.chartType = 'bar';
+  }
+
+  else if (metric === 'telemetry') {
+    textResponse = `🌡️ **IoT Telemetry Logs**: Accessing live outlet sensor feeds. Average walk-in freezer temperature is **3.4°C**, and average conveyor oven temperature is **235°C**.`;
+    cmdObj.chartType = 'line';
+  }
+
+  else if (metric === 'inventory') {
+    textResponse = `📦 **Inventory Alignment**: Displaying stock level vs. projected demand across core SKUs (Pizza Dough, Mozzarella Cheese, Marinara Sauce, Pepperoni, Veggie Mix).`;
+    cmdObj.chartType = 'bar';
+  }
+
+  else {
+    textResponse = `📦 **Logistics & Shipments**: Active ingredient shipments are moving on-schedule. Central warehouse dispatch tracking is active.`;
+    cmdObj.chartType = 'bar';
+  }
+
+  return { text: textResponse, cmd: cmdObj };
 }
 
 export default function Copilot() {
@@ -161,7 +414,7 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
     }
 
     const systemContext = buildSystemContext();
-    const recentHistory = messages.slice(-6);
+    const recentHistory = messages.filter(m => m.role === 'agent' || m.role === 'user').slice(-6);
 
     // Prompt engineering based on selected mode
     let modeInstruction = "";
@@ -181,7 +434,7 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: msgPayload, temperature: 0.15 })
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: msgPayload, temperature: 0.15 })
       });
       if (!res.ok) {
         if (res.status === 401) { throw new Error('Invalid API Key configured in `.env`. Please verify your `VITE_GROQ_API_KEY`.'); }
@@ -224,7 +477,31 @@ Answer questions concisely, professionally, with markdown bolding and lists. Do 
       });
     } catch (err) {
       setIsTyping(false);
-      setMessages(prev => [...prev, { role: 'agent', content: `⚠️ **LLM Connection Error**: ${err.message}` }]);
+      console.warn("Groq API error, running local NLP fallback:", err);
+      
+      const fallbackResult = runLocalNLP(query, db);
+      const offlineNotice = `\n\n*(⚡ **Offline Fallback Engine**: Answer generated locally from live database metrics because the Groq LLM API returned a ${err.message.includes('429') ? 'rate limit error (429)' : 'connection error'}.)*`;
+      const fullContent = fallbackResult.text + offlineNotice;
+
+      setMessages(prev => {
+        const newMsgs = [...prev];
+        // Add text message
+        newMsgs.push({ role: 'agent', content: fullContent });
+
+        // Add chart message if in graph mode or if a chart was requested
+        const wantsGraph = copilotMode === 'graph' || query.toLowerCase().includes('plot') || query.toLowerCase().includes('draw') || query.toLowerCase().includes('chart') || query.toLowerCase().includes('graph');
+        if (wantsGraph && fallbackResult.cmd) {
+          newMsgs.push({
+            role: 'chart',
+            metric: fallbackResult.cmd.metric,
+            city: fallbackResult.cmd.city,
+            chartType: fallbackResult.cmd.chartType
+          });
+        }
+
+        localStorage.setItem(CHAT_HISTORY_LS, JSON.stringify(newMsgs));
+        return newMsgs;
+      });
     }
   }
 

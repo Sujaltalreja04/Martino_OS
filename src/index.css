@@ -1506,6 +1506,77 @@ select.form-control option {
   0%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-6px); }
 }
+
+/* Markdown Typography & Table Alignment Styles in Chat Bubbles */
+.markdown-p {
+  margin: 0 0 8px 0;
+}
+.markdown-p:last-child {
+  margin-bottom: 0;
+}
+.markdown-h1, .markdown-h2, .markdown-h3 {
+  margin: 12px 0 6px 0;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.markdown-h1 { font-size: 15px; }
+.markdown-h2 { font-size: 14px; }
+.markdown-h3 { font-size: 13px; }
+
+.markdown-list {
+  margin: 4px 0 10px 16px;
+  padding: 0;
+  list-style-type: disc;
+}
+.markdown-list li {
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.markdown-code {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #ffb703;
+}
+
+/* Scrollable container for markdown tables */
+.table-container-scroll {
+  width: 100%;
+  overflow-x: auto;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.markdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.markdown-table th {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.markdown-table tr:last-child td {
+  border-bottom: none;
+}
+
 .notebook-input-panel {
   padding: 16px 24px 24px;
   border-top: 1px solid var(--border-glass);
