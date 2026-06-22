@@ -60,7 +60,7 @@ export default function Dashboard() {
       <section className="content-body">
         {/* Stats Row */}
         <div className="grid-stats">
-          <TiltCard className="stat-card" maxTilt={8}>
+          <TiltCard className="stat-card animate-fade-in-up anim-delay-1" maxTilt={8}>
             <div className="stat-info" style={{ flexGrow: 1 }}>
               <p>Total Revenue (Today)</p>
               <div className="stat-value revenue-val">₹{stats.totalRevenue.toLocaleString('en-IN')}</div>
@@ -69,7 +69,7 @@ export default function Dashboard() {
             </div>
             <div className="stat-icon"><i className="fa-solid fa-indian-rupee-sign"></i></div>
           </TiltCard>
-          <TiltCard className="stat-card" maxTilt={8}>
+          <TiltCard className="stat-card animate-fade-in-up anim-delay-2" maxTilt={8}>
             <div className="stat-info" style={{ flexGrow: 1 }}>
               <p>Total Orders (Today)</p>
               <div className="stat-value orders-val">{stats.totalOrders.toLocaleString('en-IN')}</div>
@@ -78,7 +78,7 @@ export default function Dashboard() {
             </div>
             <div className="stat-icon"><i className="fa-solid fa-basket-shopping"></i></div>
           </TiltCard>
-          <TiltCard className="stat-card" maxTilt={8}>
+          <TiltCard className="stat-card animate-fade-in-up anim-delay-3" maxTilt={8}>
             <div className="stat-info" style={{ flexGrow: 1 }}>
               <p>Avg Hygiene Score</p>
               <div className="stat-value hygiene-val">{stats.avgHygieneScore.toFixed(1)}%</div>
@@ -91,7 +91,7 @@ export default function Dashboard() {
             </div>
             <div className="stat-icon"><i className="fa-solid fa-hand-holding-hand"></i></div>
           </TiltCard>
-          <TiltCard className="stat-card" maxTilt={8}>
+          <TiltCard className="stat-card animate-fade-in-up anim-delay-4" maxTilt={8}>
             <div className="stat-info" style={{ flexGrow: 1 }}>
               <p>Active Complaints</p>
               <div className="stat-value complaints-val">{stats.openComplaints}</div>
@@ -114,7 +114,7 @@ export default function Dashboard() {
             <ThreeDPizza />
 
             {/* AI Insights */}
-            <TiltCard className="dashboard-card" maxTilt={4}>
+            <TiltCard className="dashboard-card animate-fade-in-up anim-delay-2" maxTilt={4}>
               <div className="card-header">
                 <h3><i className="fa-solid fa-wand-magic-sparkles text-orange"></i> AI Executive Insights</h3>
                 <span className="badge badge-info">Real-time Feed</span>
@@ -133,7 +133,7 @@ export default function Dashboard() {
             </TiltCard>
 
             {/* High-Risk Outlets */}
-            <TiltCard className="dashboard-card" maxTilt={3}>
+            <TiltCard className="dashboard-card animate-fade-in-up anim-delay-3" maxTilt={3}>
               <div className="card-header">
                 <h3><i className="fa-solid fa-triangle-exclamation text-orange"></i> High-Risk Outlets Checklist</h3>
                 <span className="badge badge-danger">{riskOutlets.length} Outlets</span>
@@ -165,7 +165,7 @@ export default function Dashboard() {
           {/* Right Column */}
           <div className="right-col">
             {/* Leaderboard */}
-            <TiltCard className="dashboard-card" maxTilt={4}>
+            <TiltCard className="dashboard-card animate-fade-in-up anim-delay-2" maxTilt={4}>
               <div className="card-header">
                 <h3><i className="fa-solid fa-crown text-gold"></i> Franchise Standings</h3>
                 <div className="ticket-filters">
@@ -195,7 +195,7 @@ export default function Dashboard() {
             </TiltCard>
 
             {/* Quick Actions */}
-            <TiltCard className="dashboard-card" maxTilt={4}>
+            <TiltCard className="dashboard-card animate-fade-in-up anim-delay-3" maxTilt={4}>
               <div className="card-header">
                 <h3><i className="fa-solid fa-gears"></i> Core Operations Quick Actions</h3>
               </div>

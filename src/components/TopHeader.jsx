@@ -34,11 +34,14 @@ export default function TopHeader({ title }) {
           <span>{clock}</span>
         </div>
         <div className="bell-notification" onClick={() => navigate('/command-center')}>
-          <i className="fa-regular fa-bell"></i>
-          <span className="bell-badge">{notifCount}</span>
+          <i className={`fa-regular fa-bell ${notifCount > 0 ? 'bell-wiggle' : ''}`}></i>
+          {notifCount > 0 && <span className="bell-badge">{notifCount}</span>}
         </div>
         <div className="user-profile">
-          <div className="user-avatar">AD</div>
+          <div className="user-avatar-container">
+            <div className="user-avatar">AD</div>
+            <span className="user-status-dot"></span>
+          </div>
           <div className="user-info">
             <span className="user-name">Admin Control</span>
             <span className="user-role">Martinoz Corporate HQ</span>

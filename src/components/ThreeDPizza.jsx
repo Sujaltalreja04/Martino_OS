@@ -1,11 +1,47 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function ThreeDPizza() {
   const [isExploded, setIsExploded] = useState(false);
+  const cardRef = useRef(null);
+  const [tiltStyle, setTiltStyle] = useState({
+    transform: 'rotateX(60deg) rotateZ(-30deg)',
+    transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+  });
+
+  const handleMouseMove = (e) => {
+    setIsExploded(true);
+    const card = cardRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const width = rect.width;
+    const height = rect.height;
+
+    // Map coordinates to rotate angles
+    const rotateY = ((x / width) - 0.5) * 25; // horizontal rotate range
+    const rotateX = (0.5 - (y / height)) * 25; // vertical rotate range
+
+    setTiltStyle({
+      transform: `rotateX(${60 + rotateX}deg) rotateZ(${-30 + rotateY}deg)`,
+      transition: 'transform 0.1s cubic-bezier(0.25, 1, 0.5, 1)'
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setIsExploded(false);
+    setTiltStyle({
+      transform: 'rotateX(60deg) rotateZ(-30deg)',
+      transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+    });
+  };
 
   return (
     <div
-      className="dashboard-card interactive-3d-pizza-card"
+      ref={cardRef}
+      className="dashboard-card interactive-3d-pizza-card animate-fade-in-up anim-delay-1"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -17,8 +53,8 @@ export default function ThreeDPizza() {
         minHeight: '360px',
         cursor: 'pointer'
       }}
-      onMouseEnter={() => setIsExploded(true)}
-      onMouseLeave={() => setIsExploded(false)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       <div className="card-header" style={{ width: '100%', marginBottom: '16px' }}>
         <h3>
@@ -54,8 +90,7 @@ export default function ThreeDPizza() {
               height: '200px',
               position: 'relative',
               transformStyle: 'preserve-3d',
-              transform: 'rotateX(60deg) rotateZ(-30deg)',
-              transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+              ...tiltStyle
             }}
           >
             {/* Layer 1: Shadow (Bottom) */}

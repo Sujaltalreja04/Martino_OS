@@ -76,7 +76,19 @@ export default function Compliance() {
                     <i className="fa-solid fa-circle-chevron-right text-orange"></i> {cat}
                   </h4>
                   {CHECKLIST_ITEMS.filter(item => item.category === cat).map(item => (
-                    <div key={item.id} className="ai-alert-item info" style={{ marginBottom: '12px', cursor: 'pointer', padding: '14px 16px' }} onClick={() => setChecked(c => ({ ...c, [item.id]: !c[item.id] }))}>
+                    <div 
+                      key={item.id} 
+                      className={`ai-alert-item info ${checked[item.id] ? 'active-checked' : ''}`} 
+                      style={{ 
+                        marginBottom: '12px', 
+                        cursor: 'pointer', 
+                        padding: '14px 16px', 
+                        borderLeft: checked[item.id] ? '3px solid var(--success)' : '1px solid var(--border-glass)', 
+                        background: checked[item.id] ? 'rgba(56, 176, 0, 0.03)' : 'rgba(255,255,255,0.01)', 
+                        transition: 'all 0.3s ease' 
+                      }} 
+                      onClick={() => setChecked(c => ({ ...c, [item.id]: !c[item.id] }))}
+                    >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', width: '100%' }}>
                         <input
                            type="checkbox"
@@ -110,16 +122,26 @@ export default function Compliance() {
               <div className="card-header" style={{ justifyContent: 'center', borderBottom: 'none', paddingBottom: 0, marginBottom: '24px' }}>
                 <h3><i className="fa-solid fa-circle-half-stroke highlight-orange"></i> Real-time Compliance Score</h3>
               </div>
-              <div style={{
-                width: '160px', height: '160px', borderRadius: '50%',
-                border: `6px solid ${gaugeStatus.color}`,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 24px', background: 'rgba(0,0,0,0.2)',
-                transition: 'border-color 0.5s ease'
-              }}>
-                <span style={{ fontSize: '40px', fontWeight: 800, fontFamily: 'var(--font-heading)', color: gaugeStatus.color }}>{totalScore}%</span>
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>SCORE</span>
+              
+              <div className="compliance-gauge-container">
+                <svg className="compliance-gauge-svg" viewBox="0 0 100 100">
+                  <circle className="compliance-gauge-bg" cx="50" cy="50" r="44" />
+                  <circle 
+                    className="compliance-gauge-fill" 
+                    cx="50" 
+                    cy="50" 
+                    r="44" 
+                    stroke={gaugeStatus.color}
+                    strokeDasharray={2 * Math.PI * 44}
+                    strokeDashoffset={2 * Math.PI * 44 * (1 - totalScore / 100)}
+                  />
+                </svg>
+                <div className="compliance-gauge-text">
+                  <span className="score-value" style={{ color: gaugeStatus.color }}>{totalScore}%</span>
+                  <span className="score-label">SCORE</span>
+                </div>
               </div>
+
               <span className={`badge ${gaugeStatus.cls}`} style={{ fontSize: '12px', padding: '6px 16px' }}>{gaugeStatus.text}</span>
 
               <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>

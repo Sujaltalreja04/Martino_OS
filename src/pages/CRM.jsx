@@ -155,6 +155,44 @@ export default function CRM() {
                     </div>
                   ))}
                 </div>
+
+                {/* Visual Ticket Progress Timeline */}
+                <div className="ticket-timeline-container" style={{ margin: '20px 0 28px' }}>
+                  <h5 style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '14px' }}>Ticket Resolution Stage</h5>
+                  <div className="ticket-timeline">
+                    <div className="ticket-timeline-bar-bg"></div>
+                    <div 
+                      className="ticket-timeline-bar-fill" 
+                      style={{ 
+                        width: selectedTicket.status === 'Resolved' ? '80%' : (selectedTicket.status === 'Escalated' ? '40%' : '20%') 
+                      }}
+                    ></div>
+                    
+                    <div className="timeline-step completed">
+                      <div className="timeline-node">
+                        <i className="fa-solid fa-file-invoice"></i>
+                      </div>
+                      <span className="timeline-label">Logged</span>
+                    </div>
+
+                    <div className={`timeline-step ${selectedTicket.status === 'Resolved' ? 'completed' : 'active'}`}>
+                      <div className="timeline-node">
+                        <i className="fa-solid fa-magnifying-glass-chart"></i>
+                      </div>
+                      <span className="timeline-label">
+                        {selectedTicket.status === 'Escalated' ? 'Escalated' : 'Investigating'}
+                      </span>
+                    </div>
+
+                    <div className={`timeline-step ${selectedTicket.status === 'Resolved' ? 'completed' : ''}`}>
+                      <div className="timeline-node">
+                        <i className="fa-solid fa-circle-check"></i>
+                      </div>
+                      <span className="timeline-label">Resolved</span>
+                    </div>
+                  </div>
+                </div>
+
                 <h5 style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', margin: '16px 0 8px' }}>Customer Complaint Description</h5>
                 <div className="ticket-desc-box">{selectedTicket.description}</div>
                 <div className="overlay-grid" style={{ marginBottom: '24px' }}>

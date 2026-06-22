@@ -127,10 +127,10 @@ export default function CommandCenter() {
       </section>
 
       {/* Inspector Overlay */}
-      {inspectedOutlet && (
-        <>
-          <div className="overlay-overlay show" onClick={() => setInspectedOutlet(null)}></div>
-          <div className="outlet-inspector-overlay open" style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '380px', background: 'var(--bg-darker)', borderLeft: '1px solid var(--border-glass)', zIndex: 200, overflowY: 'auto', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className={`overlay-overlay ${inspectedOutlet ? 'show' : ''}`} onClick={() => setInspectedOutlet(null)}></div>
+      <div className={`outlet-inspector-overlay ${inspectedOutlet ? 'open' : ''}`}>
+        {inspectedOutlet && (
+          <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>{inspectedOutlet.id}</div>
@@ -184,9 +184,9 @@ export default function CommandCenter() {
                 <i className="fa-solid fa-circle-plus"></i> Log Complaint
               </button>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </>
   );
 }
