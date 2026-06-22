@@ -8,6 +8,9 @@ import Compliance from './pages/Compliance';
 import Copilot from './pages/Copilot';
 import SkuDashboard from './pages/SkuDashboard';
 import LogisticsKds from './pages/LogisticsKds';
+import CentralizedDashboard from './pages/CentralizedDashboard';
+import AiBilling from './pages/AiBilling';
+import WasteManagement from './pages/WasteManagement';
 
 export default function App() {
   return (
@@ -22,6 +25,9 @@ export default function App() {
           <Route path="copilot" element={<Copilot />} />
           <Route path="sku-dashboard" element={<SkuDashboard />} />
           <Route path="logistics-kds" element={<LogisticsKds />} />
+          <Route path="centralized-dashboard" element={<CentralizedDashboard />} />
+          <Route path="ai-billing" element={<AiBilling />} />
+          <Route path="waste-management" element={<WasteManagement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

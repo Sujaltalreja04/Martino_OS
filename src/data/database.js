@@ -118,13 +118,51 @@ const DEFAULT_PROMOS = [
   { code: 'MARGHERITAPROMO', discount: 30, description: 'Exclusive 30% discount on Margherita', status: 'Active' }
 ];
 
+const DEFAULT_CONSUMER_DATA = [
+  { outletId: 'OUT-01', day: 'Monday', occupancyRate: 65, peakHour: '19:00', totalSeats: 120, seatsFull: 78 },
+  { outletId: 'OUT-01', day: 'Tuesday', occupancyRate: 60, peakHour: '20:00', totalSeats: 120, seatsFull: 72 },
+  { outletId: 'OUT-01', day: 'Wednesday', occupancyRate: 75, peakHour: '19:30', totalSeats: 120, seatsFull: 90 },
+  { outletId: 'OUT-01', day: 'Thursday', occupancyRate: 80, peakHour: '20:00', totalSeats: 120, seatsFull: 96 },
+  { outletId: 'OUT-01', day: 'Friday', occupancyRate: 95, peakHour: '21:00', totalSeats: 120, seatsFull: 114 },
+  { outletId: 'OUT-01', day: 'Saturday', occupancyRate: 100, peakHour: '21:30', totalSeats: 120, seatsFull: 120 },
+  { outletId: 'OUT-01', day: 'Sunday', occupancyRate: 98, peakHour: '20:30', totalSeats: 120, seatsFull: 118 },
+  { outletId: 'OUT-02', day: 'Friday', occupancyRate: 92, peakHour: '20:00', totalSeats: 150, seatsFull: 138 },
+  { outletId: 'OUT-02', day: 'Saturday', occupancyRate: 100, peakHour: '21:00', totalSeats: 150, seatsFull: 150 },
+  { outletId: 'OUT-02', day: 'Sunday', occupancyRate: 95, peakHour: '20:00', totalSeats: 150, seatsFull: 142 },
+  { outletId: 'OUT-05', day: 'Friday', occupancyRate: 85, peakHour: '21:00', totalSeats: 80, seatsFull: 68 },
+  { outletId: 'OUT-05', day: 'Saturday', occupancyRate: 90, peakHour: '21:30', totalSeats: 80, seatsFull: 72 },
+  { outletId: 'OUT-05', day: 'Sunday', occupancyRate: 88, peakHour: '20:30', totalSeats: 80, seatsFull: 70 },
+];
+
+const DEFAULT_RAW_MATERIALS = [
+  { id: 'RM-01', name: 'Mozzarella Cheese', category: 'Dairy', stockKg: 45, parLevelKg: 100, unitCost: 450, status: 'Understock' },
+  { id: 'RM-02', name: 'Pizza Flour', category: 'Pantry', stockKg: 850, parLevelKg: 500, unitCost: 40, status: 'Overstock' },
+  { id: 'RM-03', name: 'Tomato Sauce', category: 'Pantry', stockKg: 120, parLevelKg: 150, unitCost: 85, status: 'Normal' },
+  { id: 'RM-04', name: 'Pepperoni', category: 'Meat', stockKg: 15, parLevelKg: 40, unitCost: 800, status: 'Understock' },
+  { id: 'RM-05', name: 'Pizza Boxes (10")', category: 'Packaging', stockKg: 5000, parLevelKg: 2000, unitCost: 12, status: 'Overstock' },
+  { id: 'RM-06', name: 'Jalapenos', category: 'Produce', stockKg: 8, parLevelKg: 25, unitCost: 150, status: 'Understock' },
+  { id: 'RM-07', name: 'Olive Oil', category: 'Pantry', stockKg: 40, parLevelKg: 35, unitCost: 650, status: 'Normal' },
+];
+
 function initDatabase() {
-  const seedFlag = DB_PREFIX + 'v4_expanded';
+  const seedFlag = DB_PREFIX + 'v5_expanded';
   if (!localStorage.getItem(seedFlag)) {
-    ['outlets','tickets','skus','inventory','kds','iot','shipments','promos'].forEach(k => localStorage.removeItem(DB_PREFIX + k));
+    ['outlets','tickets','skus','inventory','kds','iot','shipments','promos', 'consumer_data', 'raw_materials'].forEach(k => localStorage.removeItem(DB_PREFIX + k));
     localStorage.setItem(seedFlag, 'true');
   }
-  if (!localStorage.getItem(DB_PREFIX + 'outlets')) localStorage.setItem(DB_PREFIX + 'outlets', JSON.stringify(DEFAULT_OUTLETS));
+  
+  // Add budget fields to outlets if they don't exist
+  let outletsData = DEFAULT_OUTLETS;
+  if (!localStorage.getItem(DB_PREFIX + 'outlets')) {
+    outletsData = DEFAULT_OUTLETS.map(o => ({
+      ...o,
+      budgetedSales: o.sales * 1.2,
+      budgetedExpense: o.sales * 0.7,
+      actualExpense: o.sales * (0.6 + Math.random() * 0.3)
+    }));
+    localStorage.setItem(DB_PREFIX + 'outlets', JSON.stringify(outletsData));
+  }
+  
   if (!localStorage.getItem(DB_PREFIX + 'tickets')) localStorage.setItem(DB_PREFIX + 'tickets', JSON.stringify(DEFAULT_TICKETS));
   if (!localStorage.getItem(DB_PREFIX + 'skus')) localStorage.setItem(DB_PREFIX + 'skus', JSON.stringify(DEFAULT_SKUS));
   if (!localStorage.getItem(DB_PREFIX + 'inventory')) localStorage.setItem(DB_PREFIX + 'inventory', JSON.stringify(DEFAULT_INVENTORY));
@@ -132,6 +170,8 @@ function initDatabase() {
   if (!localStorage.getItem(DB_PREFIX + 'iot')) localStorage.setItem(DB_PREFIX + 'iot', JSON.stringify(DEFAULT_IOT));
   if (!localStorage.getItem(DB_PREFIX + 'shipments')) localStorage.setItem(DB_PREFIX + 'shipments', JSON.stringify(DEFAULT_SHIPMENTS));
   if (!localStorage.getItem(DB_PREFIX + 'promos')) localStorage.setItem(DB_PREFIX + 'promos', JSON.stringify(DEFAULT_PROMOS));
+  if (!localStorage.getItem(DB_PREFIX + 'consumer_data')) localStorage.setItem(DB_PREFIX + 'consumer_data', JSON.stringify(DEFAULT_CONSUMER_DATA));
+  if (!localStorage.getItem(DB_PREFIX + 'raw_materials')) localStorage.setItem(DB_PREFIX + 'raw_materials', JSON.stringify(DEFAULT_RAW_MATERIALS));
 }
 
 export const Database = {
@@ -239,5 +279,20 @@ export const Database = {
     if (existing) { existing.discount = discount; existing.description = description; existing.status = 'Active'; }
     else promos.push({ code: code.toUpperCase(), discount, description, status: 'Active' });
     this.savePromos(promos);
+  },
+  getConsumerData() { initDatabase(); return JSON.parse(localStorage.getItem(DB_PREFIX + 'consumer_data')); },
+  saveConsumerData(data) { localStorage.setItem(DB_PREFIX + 'consumer_data', JSON.stringify(data)); },
+  getRawMaterials() { initDatabase(); return JSON.parse(localStorage.getItem(DB_PREFIX + 'raw_materials')); },
+  saveRawMaterials(data) { localStorage.setItem(DB_PREFIX + 'raw_materials', JSON.stringify(data)); },
+  getFinancialStats() {
+    const outlets = this.getOutlets();
+    let budgetedSales = 0, budgetedExpense = 0, actualExpense = 0, actualSales = 0;
+    outlets.forEach(o => {
+      budgetedSales += o.budgetedSales || 0;
+      budgetedExpense += o.budgetedExpense || 0;
+      actualExpense += o.actualExpense || 0;
+      actualSales += o.sales || 0;
+    });
+    return { budgetedSales, budgetedExpense, actualExpense, actualSales };
   }
 };

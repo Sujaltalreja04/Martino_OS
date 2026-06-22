@@ -10,6 +10,9 @@ const NAV_ITEMS = [
   { to: '/copilot', icon: 'fa-wand-magic-sparkles', label: 'AI Copilot' },
   { to: '/sku-dashboard', icon: 'fa-boxes-stacked', label: 'SKU Dashboard' },
   { to: '/logistics-kds', icon: 'fa-truck-ramp-box', label: 'Logistics & KDS' },
+  { to: '/centralized-dashboard', icon: 'fa-globe', label: 'Centralized Ops' },
+  { to: '/ai-billing', icon: 'fa-cash-register', label: 'AI Billing POS' },
+  { to: '/waste-management', icon: 'fa-recycle', label: 'Waste Management' },
 ];
 
 export default function Sidebar() {
